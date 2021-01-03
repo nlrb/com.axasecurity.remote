@@ -1,0 +1,14 @@
+{
+  "pair": {
+    "title": "Add an Axa Remote LAN controller",
+    "intro": "Enter IP address and port",
+    "required": "An IP address is required",
+    "invalidIP": "IP address is invalid",
+    "check": "Looking for Axa Remote device",
+    "error": "Error adding the device",
+    "add": "Device is being added to Homey",
+    "ipAddress": "IP address",
+    "ipPort": "Port number",
+    "save": "Add device"
+  }
+}
