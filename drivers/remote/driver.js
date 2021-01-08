@@ -27,7 +27,7 @@ class AxaDriver extends Homey.Driver {
 	          data: { id: id },
 	          settings: {
 	            ip: data.ip,
-							port: data.port,
+							port: Number(data.port),
 	            interval: 10
 	          }
 	        }

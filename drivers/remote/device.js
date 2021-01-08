@@ -33,27 +33,17 @@ class AxaDevice extends Homey.Device {
     		});
         // Set up polling timer
         let interval = (settings.interval || 10) * 1000;
-        this.timer = setInterval(async () => {
-          this.log('Checking status')
-          try {
-            let state = await this.remote.sendCommand('STATUS');
-            this.log(state);
-            if (state && (state.code === 210 || state.code === 211)) {
-              this.setCapabilityValue('locked', state.code === 211); //'Strong Locked'
-            }
-          } catch(err) {
-            this.error(err);
-            this.onDelete();
-            this.setUnavailable(err.message);
-            this.onInit();
-          }
+        this.timer = setInterval(() => {
+          this.checkStatus();
         }, interval);
         // All done
         this.setAvailable();
-				this.log('AxaDevice has been inited')
+        this.checkStatus();
+				this.log('AxaDevice has been initialized')
 			})
 			.catch(err => {
         this.error(err);
+        this.onDelete();
         this.setUnavailable(err.message);
         // Retry initialization on interval basis
         this.reconnect = setInterval(() => {
@@ -64,7 +54,7 @@ class AxaDevice extends Homey.Device {
 
   onDelete() {
     clearInterval(this.timer);
-    if (this.remote) {
+    if (this.remote !== undefined) {
       this.remote.disconnect();
     }
   }
@@ -81,6 +71,28 @@ class AxaDevice extends Homey.Device {
         reject(new Error(err));
       }
     })
+  }
+
+  async checkStatus() {
+    this.log('Checking status')
+    try {
+      let state = await this.remote.sendCommand('STATUS');
+      this.log(state);
+      if (state && (state.code === 210 || state.code === 211)) {
+        this.setCapabilityValue('locked', state.code === 211); //'Strong Locked'
+      }
+    } catch(err) {
+      this.error(err);
+      if (err instanceof Error) {
+        // Serious error
+        this.onDelete();
+        this.setUnavailable(err.message);
+        // Retry initialization on interval basis
+        this.reconnect = setInterval(() => {
+          this.onInit();
+        }, 30000);
+      }
+    }
   }
 
 }
