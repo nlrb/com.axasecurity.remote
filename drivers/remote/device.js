@@ -16,6 +16,7 @@ class AxaDevice extends Homey.Device {
         // Clear reconnect interval if active
         if (this.reconnect !== undefined) {
           clearInterval(this.reconnect);
+          this.reconnect = undefined;
         }
         // Register capability listeners
     		this.registerCapabilityListener('window_position', (state) => {
@@ -42,13 +43,7 @@ class AxaDevice extends Homey.Device {
 				this.log('AxaDevice has been initialized')
 			})
 			.catch(err => {
-        this.error(err);
-        this.onDelete();
-        this.setUnavailable(err.message);
-        // Retry initialization on interval basis
-        this.reconnect = setInterval(() => {
-          this.onInit();
-        }, 30000);
+        this.handleError(err.message);
       })
 	}
 
@@ -85,13 +80,22 @@ class AxaDevice extends Homey.Device {
       this.error(err);
       if (err instanceof Error) {
         // Serious error
-        this.onDelete();
-        this.setUnavailable(err.message);
-        // Retry initialization on interval basis
-        this.reconnect = setInterval(() => {
-          this.onInit();
-        }, 30000);
+        this.handleError(err.message);
       }
+    }
+  }
+
+  handleError(message) {
+    this.error(message);
+    // Only set up a reconnect if none is running
+    if (this.reconnect === undefined) {
+      this.onDelete();
+      this.setUnavailable(message);
+      // Retry initialization on interval basis
+      this.reconnect = setInterval(() => {
+        this.onInit();
+      }, 30000);
+
     }
   }
 
